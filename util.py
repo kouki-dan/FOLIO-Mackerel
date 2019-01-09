@@ -277,30 +277,31 @@ def fetch_folio_omakase(browser) -> Optional[Omakase]:
 def fetch_folio_shisan(browser):
     shisan_page = browser.open(UserShisan.shisan_url)
     user_shisan = UserShisan.parse_user_shisan_page_dom(shisan_page.soup)
-    all_theme = fetch_folio_all_theme(browser, shisan_page.soup)
-    omakase = fetch_folio_omakase(browser)
+    # とりあえず総資産だけ取れればいいので余計なリクエストは飛ばさないようにしておく（取りたくなったら総資産以外も取るかもしれない）
+    # all_theme = fetch_folio_all_theme(browser, shisan_page.soup)
+    # omakase = fetch_folio_omakase(browser)
 
-    if len(all_theme.themes) > 0:
-        all_theme_str = "\n".join(map(lambda t: t.to_slack_msg(), all_theme.themes))
-    else:
-        all_theme_str = None
+    # if len(all_theme.themes) > 0:
+    #     all_theme_str = "\n".join(map(lambda t: t.to_slack_msg(), all_theme.themes))
+    # else:
+    #     all_theme_str = None
 
-    if omakase:
-        omakase_str = omakase.to_slack_msg()
-    else:
-        omakase_str = None
+    # if omakase:
+    #     omakase_str = omakase.to_slack_msg()
+    # else:
+    #     omakase_str = None
 
-    rankingNum = 1
+    # rankingNum = 1
     return {
         "all_shisan": user_shisan.subete_no_shisan,
-        "all_theme": all_theme_str,
-        "omakase": omakase_str,
-        "fukumi_soneki_percent": user_shisan.fukumi_soneki_percent,
-        "fukumi_soneki": user_shisan.fukumi_soneki,
-        "comp_yesterday_percent": user_shisan.zenjitsu_hi_percent,
-        "comp_yesterday": user_shisan.zenjitsu_hi,
-        "today_eiyu": "\n".join([stock.to_slack_msg() for stock in all_theme.eiyuRankingForAllTheme(rankingNum)]),
-        "today_senpan": "\n".join([stock.to_slack_msg() for stock in all_theme.senpanRankingForAllTheme(rankingNum)])
+        # "all_theme": all_theme_str,
+        # "omakase": omakase_str,
+        # "fukumi_soneki_percent": user_shisan.fukumi_soneki_percent,
+        # "fukumi_soneki": user_shisan.fukumi_soneki,
+        # "comp_yesterday_percent": user_shisan.zenjitsu_hi_percent,
+        # "comp_yesterday": user_shisan.zenjitsu_hi,
+        # "today_eiyu": "\n".join([stock.to_slack_msg() for stock in all_theme.eiyuRankingForAllTheme(rankingNum)]),
+        # "today_senpan": "\n".join([stock.to_slack_msg() for stock in all_theme.senpanRankingForAllTheme(rankingNum)])
     }
 
 

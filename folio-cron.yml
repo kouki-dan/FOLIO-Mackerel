@@ -1,15 +1,15 @@
 apiVersion: batch/v2alpha1
 kind: CronJob
 metadata:
-  name: folio-bot
+  name: folio-bot-mackerel
 spec:
-  schedule: "0 1,9 * * 1-5" # for UTC
+  schedule: "22,52 0-6,9 * * 1-5" # for UTC
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: folio-bot
+          - name: folio-bot-mackerel
             image: index.docker.io/koukidan/folio-bot
             args: ["python", "folio.py"]
             env:
@@ -23,10 +23,15 @@ spec:
                   secretKeyRef:
                     name: folio-bot-credentials
                     key: password
-              - name: WEBHOOK_URL
+              - name: MACKEREL_API_KEY
                 valueFrom:
                   secretKeyRef:
                     name: folio-bot-credentials
-                    key: webhook-url
+                    key: mackerel-api-key
+              - name: MACKEREL_SERVICE_URL
+                valueFrom:
+                  secretKeyRef:
+                    name: folio-bot-credentials
+                    key: mackerel-service-url
           restartPolicy: Never
 
