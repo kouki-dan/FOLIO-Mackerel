@@ -10,7 +10,7 @@ spec:
         spec:
           containers:
           - name: folio-bot-mackerel
-            image: index.docker.io/koukidan/folio-bot
+            image: index.docker.io/koukidan/folio-mackerel
             args: ["python", "folio.py"]
             env:
               - name: USERNAME
