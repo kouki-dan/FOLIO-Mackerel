@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import html
@@ -152,7 +151,7 @@ class UserAllTheme:
 
     @staticmethod
     def parse_all_theme_card_doms(shisan_page_dom):
-        return shisan_page_dom.select(".assetsCard__card")
+        return shisan_page_dom.select_one("section[class*=assetsCard]").select("a[class*=assetsCard]")
 
 
 class Omakase:
@@ -176,7 +175,7 @@ class Omakase:
     @staticmethod
     def parse_theme_from_dom(theme_page_dom) -> Optional[Omakase]:
         try:
-            plan = theme_page_dom.select(".myPlan__name")[0].text
+            plan = theme_page_dom.select("[class^='MyPlan__name']")[0].text
         except IndexError:
             return None
 
@@ -229,14 +228,14 @@ def login(mail: str, password: str) -> mechanicalsoup.StatefulBrowser:
     browser = mechanicalsoup.StatefulBrowser(
         soup_config={'features': 'html.parser'},
         raise_on_404=True,
-        user_agent='Mozilla/5.0 (compatible; Edge; Foliobot/0.1.9; +http://github.com/kouki-dan/folio-bot)',
+        user_agent='Mozilla/5.0 (compatible; Edge; Foliobot/0.6.0; +http://github.com/kouki-dan/folio-bot)',
     )
 
     login_url = "https://folio-sec.com/login"
     login_page = browser.open(login_url)
-    csrf_token_dict_str = login_page.soup.select("#initial-data")[0]["data-json"]
+    csrf_token_dict_str = login_page.soup.select("#meta")[0]["data-json"]
     token_dict = json.loads(html.unescape(csrf_token_dict_str))
-    csrf_token = token_dict["data"]["csrf"]
+    csrf_token = token_dict["csrf"]
 
     payload = {
         "username": mail,
@@ -277,31 +276,30 @@ def fetch_folio_omakase(browser) -> Optional[Omakase]:
 def fetch_folio_shisan(browser):
     shisan_page = browser.open(UserShisan.shisan_url)
     user_shisan = UserShisan.parse_user_shisan_page_dom(shisan_page.soup)
-    # とりあえず総資産だけ取れればいいので余計なリクエストは飛ばさないようにしておく（取りたくなったら総資産以外も取るかもしれない）
-    # all_theme = fetch_folio_all_theme(browser, shisan_page.soup)
-    # omakase = fetch_folio_omakase(browser)
+    all_theme = fetch_folio_all_theme(browser, shisan_page.soup)
+    omakase = fetch_folio_omakase(browser)
 
-    # if len(all_theme.themes) > 0:
-    #     all_theme_str = "\n".join(map(lambda t: t.to_slack_msg(), all_theme.themes))
-    # else:
-    #     all_theme_str = None
+    if len(all_theme.themes) > 0:
+        all_theme_str = "\n".join(map(lambda t: t.to_slack_msg(), all_theme.themes))
+    else:
+        all_theme_str = None
 
-    # if omakase:
-    #     omakase_str = omakase.to_slack_msg()
-    # else:
-    #     omakase_str = None
+    if omakase:
+        omakase_str = omakase.to_slack_msg()
+    else:
+        omakase_str = None
 
-    # rankingNum = 1
+    rankingNum = 1
     return {
         "all_shisan": user_shisan.subete_no_shisan,
-        # "all_theme": all_theme_str,
-        # "omakase": omakase_str,
-        # "fukumi_soneki_percent": user_shisan.fukumi_soneki_percent,
-        # "fukumi_soneki": user_shisan.fukumi_soneki,
-        # "comp_yesterday_percent": user_shisan.zenjitsu_hi_percent,
-        # "comp_yesterday": user_shisan.zenjitsu_hi,
-        # "today_eiyu": "\n".join([stock.to_slack_msg() for stock in all_theme.eiyuRankingForAllTheme(rankingNum)]),
-        # "today_senpan": "\n".join([stock.to_slack_msg() for stock in all_theme.senpanRankingForAllTheme(rankingNum)])
+        "all_theme": all_theme_str,
+        "omakase": omakase_str,
+        "fukumi_soneki_percent": user_shisan.fukumi_soneki_percent,
+        "fukumi_soneki": user_shisan.fukumi_soneki,
+        "comp_yesterday_percent": user_shisan.zenjitsu_hi_percent,
+        "comp_yesterday": user_shisan.zenjitsu_hi,
+        "today_eiyu": "\n".join([stock.to_slack_msg() for stock in all_theme.eiyuRankingForAllTheme(rankingNum)]),
+        "today_senpan": "\n".join([stock.to_slack_msg() for stock in all_theme.senpanRankingForAllTheme(rankingNum)])
     }
 
 
@@ -415,4 +413,3 @@ def is_weekday(target_datetime):
     if target_datetime.weekday() == 5 or target_datetime.weekday() == 6:
         return False
     return True
-
